@@ -290,16 +290,18 @@ class PointsMaster(object):
         wb = openpyxl.load_workbook(self.workbook, data_only=True, read_only=True)
         with open(self.OUTPUT_FILE, mode="a") as f:
             for i, row in enumerate(wb[self.sheet]):
+                point_name = str(row[self.POINT_NAME].value).strip()
                 availability = str(row[self.AVAILABLE].value).strip()
-                if availability != "Requested-Not Available" and availability != "Requested-Available" and \
-                        availability != "Requested-Not Applicable" and availability != "Not Requested-Available":
-                    self.error_count += 1
-                    print("Row {} - {} - Invalid Availability. Valid options are Requested-Not Available, "
-                          "Requested-Available, Requested-Not Applicable, Not Requested-Available"
-                          .format(i + 1, availability))
-                    f.write("Row {} - {} - Invalid Availability. Valid options are Requested-Not Available, "
-                            "Requested-Available, Requested-Not Applicable, Not Requested-Available\n"
-                            .format(i + 1, availability))
+                if point_name != 'None' and point_name != "Point Name" and i > self.start:
+                    if availability != "Requested-Not Available" and availability != "Requested-Available" and \
+                            availability != "Requested-Not Applicable" and availability != "Not Requested-Available":
+                        self.error_count += 1
+                        print("Row {} - {} - Invalid Availability. Valid options are Requested-Not Available, "
+                              "Requested-Available, Requested-Not Applicable, Not Requested-Available"
+                              .format(i + 1, availability))
+                        f.write("Row {} - {} - Invalid Availability. Valid options are Requested-Not Available, "
+                                "Requested-Available, Requested-Not Applicable, Not Requested-Available\n"
+                                .format(i + 1, availability))
 
     def verify_units_are_correct(self):
         wb = openpyxl.load_workbook(self.workbook, data_only=True, read_only=True)
