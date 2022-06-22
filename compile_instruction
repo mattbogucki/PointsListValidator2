@@ -1,0 +1,1 @@
+pyinstaller pointslistvalidator.py --onefile --hidden-import openpyxl --add-data "Attachment 3-Attribute Names & Engineering Units.xlsx";"Attachment 3-Attribute Names & Engineering Units.xlsx"
