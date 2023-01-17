@@ -15,7 +15,8 @@ class PointsMaster(object):
         self.STATE_TABLE = 7
         self.UNITS = 7
         self.SUBSTATION = 0
-        self.UNITS = 7
+        self.EGU_MIN = 9
+        self.EGU_MAX = 10
         self.POINT_NAME = POINT_NAME
         self.DEVICE_TYPE = DEVICE_TYPE
         self.DEVICE_ID = DEVICE_ID
@@ -303,6 +304,42 @@ class PointsMaster(object):
                                 "Requested-Available, Requested-Not Applicable, Not Requested-Available\n"
                                 .format(i + 1, availability))
 
+    def verify_engineering_units_defined_for_analogs(self):
+        wb = openpyxl.load_workbook(self.workbook, data_only=True, read_only=True)
+        is_analog_point = False
+        with open(self.OUTPUT_FILE, mode="a") as f:
+            for i, row in enumerate(wb[self.sheet]):
+                point_type_header = str(row[self.HEADER].value).strip()
+                if point_type_header == "Digital Inputs" or point_type_header == "Digital Outputs" or \
+                        point_type_header == "Counters" or point_type_header == "Analog Outputs":
+                    is_analog_point = False
+                elif point_type_header == "Analog Inputs":
+                    is_analog_point = True
+                if is_analog_point:
+                    availability = str(row[self.AVAILABLE].value).strip()
+                    if availability == "Requested-Available" or availability == 'Not Requested-Available':
+                        egu_min_string = row[self.EGU_MIN].value
+                        egu_max_string = row[self.EGU_MAX].value
+
+                        if egu_min_string == 'None' or egu_max_string == 'None':
+                            self.error_count += 1
+                            print("Row {} - Missing Engineering Unit Min/Max".format(i + 1))
+                            f.write("Row {} - Missing Engineering Unit Min/Max\n".format(i + 1))
+                            continue
+
+                        try:
+                            egu_min = float(egu_min_string)
+                            egu_max = float(egu_max_string)
+                        except:
+                            self.error_count += 1
+                            print("Row {} - Invalid Engineering Units, Must be numeric".format(i + 1))
+                            f.write("Row {} - Invalid Engineering Units, Must be numeric\n".format(i + 1))
+
+                        if egu_min > egu_max:
+                            self.error_count += 1
+                            print("Row {} - Invalid Engineering Units, Min must be less than Max".format(i + 1))
+                            f.write("Row {} - Invalid Engineering Units, Min must be less than Max\n".format(i + 1))
+
     def verify_units_are_correct(self):
         wb = openpyxl.load_workbook(self.workbook, data_only=True, read_only=True)
         has_units = False
@@ -321,6 +358,12 @@ class PointsMaster(object):
                         # Other check will catch if they don't use underscores but don't want to crash
                         continue
                     units = str(row[self.UNITS].value).strip()
+                    if units == "None":
+                        self.error_count += 1
+                        print("Row {} - Missing Units".format(i + 1))
+                        f.write("Row {} - Missing Units\n".format(i + 1,))
+                        continue
+
                     device_type = str(row[self.DEVICE_TYPE].value).strip()
                     correct_unit = None
 
@@ -680,6 +723,10 @@ class PointsMaster(object):
                             print("Row {} 0/1 State is incorrect, needs to be 0=Disabled, 1=Enabled".format(i+1))
                             f.write("Row {} 0/1 State is incorrect, needs to be 0=Disabled, 1=Enabled\n".format(i+1))
                             self.error_count += 1
+                    if state_table == 'none':
+                        print("Row {} 0/1 State table is missing".format(i + 1))
+                        f.write("Row {} 0/1 State table is missing\n".format(i + 1))
+                        self.error_count += 1
 
     def verify_suggested_names_for_not_requested_points_follow_pascal_case(self):
         wb = openpyxl.load_workbook(self.workbook, data_only=True, read_only=True)

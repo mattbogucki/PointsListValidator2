@@ -43,6 +43,7 @@ def main():
     pm.verify_suggested_names_for_not_requested_points_follow_pascal_case()
     pm.verify_availability_entry_is_valid()
     pm.verify_units_are_correct()
+    pm.verify_engineering_units_defined_for_analogs()
 
     with open(desktop_logfile, mode="a") as f:
         f.write("{} Errors Found".format(pm.get_error_count()))
