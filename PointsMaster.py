@@ -45,6 +45,7 @@ class PointsMaster(object):
         self.inverter_points = set()
         self.tracker_controller_points = set()
         self.soiling_station_points = set()
+        self.inverter_module_points = set()
 
         self.breaker_relay_descriptions = set()
         self.bus_relay_descriptions = set()
@@ -59,6 +60,7 @@ class PointsMaster(object):
         self.inverter_descriptions = set()
         self.tracker_controller_descriptions = set()
         self.soiling_station_descriptions = set()
+        self.inverter_module_descriptions = set()
 
         # point -> units
         self.breaker_relay_units = dict()
@@ -74,6 +76,7 @@ class PointsMaster(object):
         self.inverter_units = dict()
         self.tracker_controller_units = dict()
         self.soiling_station_units = dict()
+        self.inverter_module_units = dict()
 
         breaker_relay_points_sheet = wb['Breaker Relay']
         bus_relay_points_sheet = wb['Bus Relay']
@@ -88,6 +91,7 @@ class PointsMaster(object):
         inverter_points_sheet = wb['Inverter']
         tracker_controller_points_sheet = wb['Tracker Controller']
         soiling_station_points_sheet = wb['Soiling Station']
+        inverter_module_points_sheet = wb['Inverter Module']
 
         for row in breaker_relay_points_sheet.values:
             if row[0] and row[0].strip() != 'Attribute Name':
@@ -193,6 +197,14 @@ class PointsMaster(object):
             if row[1] and 'binary' not in row[2].lower():
                 self.soiling_station_units[row[0]] = row[1]
 
+        for row in inverter_module_points_sheet.values:
+            if row[0] and row[0].strip() != 'Attribute Name':
+                self.inverter_module_points.add(row[0].strip())
+            if row[3]:
+                self.inverter_module_descriptions.add(row[3].strip())
+            if row[1] and 'binary' not in row[2].lower():
+                self.inverter_module_units[row[0]] = row[1]
+
     def validate_point_length(self):
         with open(self.OUTPUT_FILE, mode="a") as f:
             wb = openpyxl.load_workbook(self.workbook, data_only=True, read_only=True)
@@ -248,7 +260,7 @@ class PointsMaster(object):
                         valid_names = self.met_points.copy()
                     elif device_type == "PPC" or device_type == "Power Plant Controller":
                         valid_names = self.ppc_points.copy()
-                    elif device_type == "TOP":
+                    elif device_type == "TOP" or device_type == "Transmission Operator":
                         valid_names = self.top_points.copy()
                     elif device_type == 'Medium-High Voltage Transformer':
                         valid_names = self.transformer_points.copy()
@@ -258,9 +270,11 @@ class PointsMaster(object):
                         valid_names = self.tracker_controller_points.copy()
                     elif device_type == 'Soiling Station':
                         valid_names = self.soiling_station_points.copy()
-                    elif device_type == 'Discrete I/O':
+                    elif device_type == 'Inverter Module':
+                        valid_names = self.inverter_module_points.copy()
+                    elif device_type == 'Discrete I/O' or device_type == 'Discrete IO (DPAC)':
                         continue  # No defined names for this device type
-                    elif device_type == 'Analog I/O':
+                    elif device_type == 'Analog I/O' or device_type == 'Analog IO (Axion)':
                         continue  # No defined names for this device type
                     elif device_type == 'Annunciator':
                         continue  # No defined names for this device type
@@ -334,6 +348,7 @@ class PointsMaster(object):
                             self.error_count += 1
                             print("Row {} - Invalid Engineering Units, Must be numeric".format(i + 1))
                             f.write("Row {} - Invalid Engineering Units, Must be numeric\n".format(i + 1))
+                            continue
 
                         if egu_min > egu_max:
                             self.error_count += 1
@@ -383,7 +398,7 @@ class PointsMaster(object):
                         correct_unit = self.met_units.get(point_attribute)
                     elif device_type == "PPC" or device_type == "Power Plant Controller":
                         correct_unit = self.ppc_units.get(point_attribute)
-                    elif device_type == "TOP":
+                    elif device_type == "TOP" or device_type == "Transmission Operator":
                         correct_unit = self.top_units.get(point_attribute)
                     elif device_type == 'Medium-High Voltage Transformer':
                         correct_unit = self.transformer_units.get(point_attribute)
@@ -393,6 +408,8 @@ class PointsMaster(object):
                         correct_unit = self.tracker_controller_units.get(point_attribute)
                     elif device_type == 'Soiling Station':
                         correct_unit = self.soiling_station_units.get(point_attribute)
+                    elif device_type == 'Inverter Module':
+                        correct_unit = self.inverter_module_units.get(point_attribute)
 
                     if correct_unit and correct_unit != units:
                         self.error_count += 1
@@ -425,7 +442,7 @@ class PointsMaster(object):
                         descriptions = self.met_descriptions.copy()
                     elif device_type == "PPC" or device_type == "Power Plant Controller":
                         descriptions = self.ppc_descriptions.copy()
-                    elif device_type == "TOP":
+                    elif device_type == "TOP" or device_type == "Transmission Operator":
                         descriptions = self.top_descriptions.copy()
                     elif device_type == 'Medium-High Voltage Transformer':
                         descriptions = self.transformer_descriptions.copy()
@@ -435,9 +452,11 @@ class PointsMaster(object):
                         descriptions = self.tracker_controller_descriptions.copy()
                     elif device_type == 'Soiling Station':
                         descriptions = self.soiling_station_descriptions.copy()
-                    elif device_type == 'Discrete I/O':
+                    elif device_type == 'Inverter Module':
+                        descriptions = self.inverter_module_descriptions.copy()
+                    elif device_type == 'Discrete I/O' or device_type == 'Discrete IO (DPAC)':
                         continue  # No defined descriptions for these
-                    elif device_type == 'Analog I/O':
+                    elif device_type == 'Analog I/O' or device_type == 'Analog IO (Axion)':
                         continue  # No defined descriptions for these
                     elif device_type == 'Annunciator':
                         continue  # No defined descriptions for these
@@ -475,7 +494,7 @@ class PointsMaster(object):
                             points = self.met_points.copy()
                         elif device_type == "PPC" or device_type == "Power Plant Controller":
                             points = self.ppc_points.copy()
-                        elif device_type == "TOP":
+                        elif device_type == "TOP" or device_type == "Transmission Operator":
                             points = self.top_points.copy()
                         elif device_type == 'Medium-High Voltage Transformer':
                             points = self.transformer_points.copy()
@@ -485,9 +504,11 @@ class PointsMaster(object):
                             points = self.tracker_controller_points.copy()
                         elif device_type == 'Soiling Station':
                             points = self.soiling_station_points.copy()
-                        elif device_type == 'Discrete I/O':
+                        elif device_type == 'Inverter Module':
+                            points = self.inverter_module_points.copy()
+                        elif device_type == 'Discrete I/O' or device_type == 'Discrete IO (DPAC)':
                             continue  # No defined set of points for this device type
-                        elif device_type == 'Analog I/O':
+                        elif device_type == 'Analog I/O' or device_type == 'Analog IO (Axion)':
                             continue  # No defined set of points for this device type
                         elif device_type == 'Annunciator':
                             continue  # No defined set of points for this device type
@@ -587,6 +608,8 @@ class PointsMaster(object):
                         pattern = "[A-Z\-\d]*"
                     elif device_type == 'Annunciator':
                         pattern = "[A-Z\-\d]*"
+                    elif device_type == 'Inverter Module':
+                        pattern = "INV\d{3}([A-Z]$|-\d{2,3}$)"
                     else:
                         pattern = None
                         print("Row {} contains Device Type {} which is not a valid option".format(i + 1, device_type))
