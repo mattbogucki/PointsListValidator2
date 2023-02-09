@@ -1,11 +1,8 @@
-def has_invalid_casing(words) -> bool:
-    is_all_caps = True
-    for word in words:
-        for i in range(len(word)):
-            if i == 0 and word[i].islower():
-                return True
-            elif i != 0 and word[i].islower():
-                is_all_caps = False
-    return True if is_all_caps else False
+import datetime
 
-print(has_invalid_casing(["52F11", "BREAKER", "Status"]))
+expiration_date = datetime.datetime.strptime("1/1/2023", "%m/%d/%Y")
+todays_date = datetime.datetime.now()
+
+print(todays_date > expiration_date)
+
+print('None'.split("_")[-1])
