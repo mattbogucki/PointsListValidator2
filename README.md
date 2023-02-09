@@ -4,7 +4,7 @@ Points List Validator is a tool to validate SCADA points lists delivered by the 
 
 This code can be compiled into an executable using pyinstaller using the following command.
 
-pyinstaller pointslistvalidator.py --onefile --hidden-import openpyxl --add-data "Attachment 3-Attribute Names & Engineering Units.xlsx;Attachment 3-Attribute Names & Engineering Units.xlsx"
+pyinstaller main.py --onefile --hidden-import openpyxl --add-data "Attachment 3-Attribute Names & Engineering Units.xlsx;Attachment 3-Attribute Names & Engineering Units.xlsx"
 
 The code can also be run directly with python3.  The Attachment3 document contains Clearway's standard naming conventions.  The code is designed so that even in executable form this document is linked at runtime so that changes can be made without the need to re-compile.  Therefore, when running the .exe Attachment 3 is expected to be in the same directory.
 
