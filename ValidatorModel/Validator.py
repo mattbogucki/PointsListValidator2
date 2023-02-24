@@ -384,6 +384,9 @@ class Validator(object):
             point_name = point.get_point_name()
             name_length = len(point_name)
             row = point.get_row()
+            availability = point.get_availability()
+            if availability != Availability.NOT_REQUESTED_AVAILABLE.value:
+                continue
             if name_length > 60:
                 error_msg = "Row {} - Point Exceeds 60 char limit by {} chars".format(row, name_length - 60)
                 self._logger.log_error(error_msg)
