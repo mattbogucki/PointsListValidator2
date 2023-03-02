@@ -42,6 +42,9 @@ class PointsList(object):
         self._binary_outputs = []
         self._accumulators = []
 
+        self._pi_ip_address = self._sheet['B2'].value
+        self._gms_ip_address = self._sheet['E2'].value
+
         # Spreadsheet has a header column that announces when point types change
         self._point_type = None
 
@@ -107,6 +110,12 @@ class PointsList(object):
             return 'Counters'
         else:
             return self._point_type
+
+    def get_pi_ip_address(self) -> str:
+        return self._pi_ip_address
+
+    def get_gms_ip_address(self) -> str:
+        return self._gms_ip_address
 
     def get_binary_input_points(self) -> [BinaryInputPoint]:
         return list(self._binary_inputs)

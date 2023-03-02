@@ -448,24 +448,48 @@ class Validator(object):
                     return True
         return False
 
+    def _validate_pi_ip_address_is_set(self):
+        pi_ip_address = self._points_list.get_pi_ip_address()
+        if pi_ip_address is None:
+            error_msg = "IP Address for Pi Connection must be set in cell B2"
+            self._logger.log_error(error_msg)
+        else:
+            pi_match = re.search("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", pi_ip_address)
+            if not pi_match:
+                error_msg = "Invalid IP Address set in cell B2"
+                self._logger.log_error(error_msg)
+
+    def _validate_gms_ip_address_is_set(self):
+        gms_ip_address = self._points_list.get_gms_ip_address()
+        if gms_ip_address is None:
+            error_msg = "IP Address for GMS Connection must be set in cell E2"
+            self._logger.log_error(error_msg)
+        else:
+            gms_match = re.search("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", gms_ip_address)
+            if not gms_match:
+                error_msg = "Invalid IP Address set in cell E2"
+                self._logger.log_error(error_msg)
+
     def validate_points_list(self):
-        self._verify_reactive_power_points_are_marked_available()
-        self._verify_suggested_names_for_not_requested_points_follow_pascal_case()
-        self._validate_only_available_points_have_dnp_indexes()
-        self._find_obvious_state_table_errors()
-        self._validate_dnp_indexes_not_reused()
-        self._verify_substation_name_in_points()
-        self._verify_device_ids_follow_standard()
-        self._check_for_duplicates()
-        self._verify_devices_have_all_points()
-        self._verify_units_are_correct()
-        self._validate_point_descriptions()
-        self._validate_all_placeholders_are_removed()
-        self._verify_engineering_units_defined_for_analogs()
-        self._verify_availability_entry_is_valid()
-        self._validate_underscore_usage()
-        self._validate_point_length()
-        self._validate_device_types()
-        self._validate_point_names()
+        # self._verify_reactive_power_points_are_marked_available()
+        # self._verify_suggested_names_for_not_requested_points_follow_pascal_case()
+        # self._validate_only_available_points_have_dnp_indexes()
+        # self._find_obvious_state_table_errors()
+        # self._validate_dnp_indexes_not_reused()
+        # self._verify_substation_name_in_points()
+        # self._verify_device_ids_follow_standard()
+        # self._check_for_duplicates()
+        # self._verify_devices_have_all_points()
+        # self._verify_units_are_correct()
+        # self._validate_point_descriptions()
+        # self._validate_all_placeholders_are_removed()
+        # self._verify_engineering_units_defined_for_analogs()
+        # self._verify_availability_entry_is_valid()
+        # self._validate_underscore_usage()
+        # self._validate_point_length()
+        # self._validate_device_types()
+        # self._validate_point_names()
+        self._validate_pi_ip_address_is_set()
+        self._validate_gms_ip_address_is_set()
         self._logger.print_error_count()
 
