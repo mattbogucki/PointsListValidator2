@@ -12,13 +12,15 @@ class Device(object):
     UNITS = 1
     POINT_TYPE = 2
     DESCRIPTION = 3
+    INCLUDE_IN_LIST = 4
 
     # Schema = [(Attribute Name, Units, Point Type, Description),...]
-    def __init__(self, schema: List[Tuple[str, str, str, str]], name: str):
+    def __init__(self, schema: List[Tuple[str, str, str, str, str]], name: str):
         self._schema = schema
         self._name = name
         self._attribute_units_dictionary = None
         self._attribute_descriptions_dictionary = None
+        self._attribute_lists_dictionary = None
         self._descriptions_set = None
         self._attributes_set = None
         self._required_attributes = None
@@ -51,6 +53,19 @@ class Device(object):
         self._attribute_descriptions_dictionary = new_dict
         return copy.deepcopy(new_dict)
 
+    def get_lists_attribute_should_be_included_in_dictionary(self) -> [str, str]:
+        if self._attribute_lists_dictionary:
+            return copy.deepcopy(self._attribute_lists_dictionary)
+
+        new_dict = {}
+        for row in self._schema:
+            attribute = row[Device.ATTRIBUTE].strip()
+            lists = row[Device.INCLUDE_IN_LIST].strip() if row[Device.INCLUDE_IN_LIST] else ""
+            new_dict[attribute] = lists
+
+        self._attribute_lists_dictionary = new_dict
+        return copy.deepcopy(new_dict)
+
     def get_list_of_required_attributes(self) -> [str]:
         if self._required_attributes:
             return list(self._required_attributes)
@@ -73,6 +88,8 @@ class Device(object):
             return "^[A-Z\-\d]*$"
         elif device_type == DeviceType.TRANSFORMER_RELAY.value:
             return "^[A-Z\-\d]*$"
+        elif device_type == DeviceType.TRANSFORMER_DEVICE.value:
+            return "^[A-Z\-\d]*$"
         elif device_type == DeviceType.LINE_RELAY.value:
             return "^[A-Z\-\d]*$"
         elif device_type == DeviceType.REACTIVE_POWER_RELAY.value:
@@ -80,7 +97,7 @@ class Device(object):
         elif device_type == DeviceType.MET_STATION.value:
             return "^MET\d{1,3}$"
         elif device_type == DeviceType.PPC.value:
-            return "PPC"
+            return ".*"
         elif device_type == DeviceType.TOP.value:
             return "TOP"
         elif device_type == DeviceType.MEDIUM_HIGH_VOLTAGE_XFMR.value:
@@ -99,6 +116,12 @@ class Device(object):
             return "^[A-Z\-\d]*$"
         elif device_type == DeviceType.INVERTER_MODULE.value:
             return "^INV\d{3}([A-Z]|-\d{2,3})$"
+        elif device_type == DeviceType.POI.value:
+            return "POI"
+        elif device_type == DeviceType.BREAKER_AND_MOD_CONTROLS.value:
+            return "Breaker and MOD Controls"
+        elif device_type == DeviceType.WARTSILA_ESS_UNIT.value:
+            return "^ESS\d{3}$"
         else:
             return ""
 

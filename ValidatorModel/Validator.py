@@ -15,12 +15,13 @@ from PointsListModel.PointsList import PointsList
 
 
 class Validator(object):
-    def __init__(self, points_list: PointsList, standards_file: str, log_file: str):
+    def __init__(self, points_list: PointsList, standards_file: str, log_file: str, list_type: str):
         self._points_list = points_list
         self._standards_file = standards_file
         self._logger = Logger(log_file)
         self._error_count = 0
         self._device_manager = DeviceManager(standards_file)
+        self.list_type = list_type
 
     def _verify_reactive_power_points_are_marked_available(self):
         self._logger.log_info("Verifying Reactive Power Points are marked Available")
@@ -46,7 +47,7 @@ class Validator(object):
             if availability == Availability.NOT_REQUESTED_AVAILABLE.value:
                 attribute_name = point_name.split("_")[-1]
                 attribute_words = attribute_name.split(" ")
-                if self.__starts_with_lowercase_letter(attribute_words) or self.__is_all_caps(attribute_words) or self.__has_capital_letter_in_middle_of_word(attribute_words):
+                if self.__starts_with_lowercase_letter(attribute_words) or  self.__has_capital_letter_in_middle_of_word(attribute_words):
                     error_msg = "Row {} Error - {} casing invalid. Not Requested, Available Point " \
                                 "names must be Title case with spaces between words. " \
                                 "i.e. CSCSB1 Switch Control".format(row, attribute_name)
@@ -59,13 +60,6 @@ class Validator(object):
                 if i == 0 and word[i].islower():
                     return True
         return False
-
-    def __is_all_caps(self, words) -> bool:
-        for word in words:
-            for i in range(len(word)):
-                if word[i].islower():
-                    return False
-        return True
 
     def __has_capital_letter_in_middle_of_word(self, words) -> bool:
         for word in words:
@@ -171,10 +165,6 @@ class Validator(object):
             row = point.get_row()
             pattern = Device.get_regex_pattern_for(device_type)
 
-            # Verify that the device id was used in the point name
-            if device_id not in point_name:
-                self._logger.log_error("Row {} Device ID {} not used in Point name".format(row, device_id))
-
             if pattern:
                 # Verify that Device ID follows the defined convention
                 match = re.search(pattern, device_id)
@@ -209,6 +199,7 @@ class Validator(object):
         self._logger.log_info("Verifying that each DeviceID has all required attributes")
 
         device_dictionary = {}
+        lists_dictionary = {}
         allowed_device_types = set(item.value for item in DeviceType)
 
         for point in self._points_list.get_all_points():
@@ -220,6 +211,7 @@ class Validator(object):
             if source_device not in device_dictionary:
                 device = self._device_manager.create_device(device_type)
                 device_dictionary[source_device] = device.get_list_of_required_attributes()
+                lists_dictionary[source_device] = device.get_lists_attribute_should_be_included_in_dictionary()
 
             dictionary_pts = device_dictionary.get(source_device)
             for pt in dictionary_pts.copy():  # Have to copy or RuntimeError: Set changed size during iteration
@@ -234,6 +226,11 @@ class Validator(object):
 
         for source_dev, remaining_pts in device_dictionary.items():
             for remaining_pt in remaining_pts:
+                # Check if it's not needed based on points list type being Historian or GMS
+                include_list = lists_dictionary[source_dev].get(remaining_pt)
+                if self.list_type not in include_list.lower():
+                    continue
+
                 self._logger.log_error("Missing point for {}, {}".format(source_dev, remaining_pt))
 
         self._logger.log_endline()
