@@ -37,8 +37,8 @@ class Validator(object):
                     self._logger.log_error(error_msg)
         self._logger.log_endline()
 
-    def _verify_suggested_names_for_not_requested_points_follow_pascal_case(self):
-        self._logger.log_info("Verifying Not Requested-Available points are Pascal Case with Spaces")
+    def _verify_suggested_names_for_not_requested_points_follow_title_case(self):
+        self._logger.log_info("Verifying Not Requested-Available points are Title Case with Spaces")
         for point in self._points_list.get_all_points():
             row = point.get_row()
             point_name = point.get_point_name()
@@ -46,22 +46,36 @@ class Validator(object):
             if availability == Availability.NOT_REQUESTED_AVAILABLE.value:
                 attribute_name = point_name.split("_")[-1]
                 attribute_words = attribute_name.split(" ")
-                if self.__has_invalid_casing(attribute_words):
+                if self.__starts_with_lowercase_letter(attribute_words) or self.__is_all_caps(attribute_words) or self.__has_capital_letter_in_middle_of_word(attribute_words):
                     error_msg = "Row {} Error - {} casing invalid. Not Requested, Available Point " \
-                                "names must be Pascal case with spaces between words. " \
+                                "names must be Title case with spaces between words. " \
                                 "i.e. CSCSB1 Switch Control".format(row, attribute_name)
                     self._logger.log_error(error_msg)
         self._logger.log_endline()
 
-    def __has_invalid_casing(self, words) -> bool:
-        is_all_caps = True
+    def __starts_with_lowercase_letter(self, words) -> bool:
         for word in words:
             for i in range(len(word)):
                 if i == 0 and word[i].islower():
                     return True
-                elif i != 0 and word[i].islower():
-                    is_all_caps = False
-        return True if is_all_caps else False
+        return False
+
+    def __is_all_caps(self, words) -> bool:
+        for word in words:
+            for i in range(len(word)):
+                if word[i].islower():
+                    return False
+        return True
+
+    def __has_capital_letter_in_middle_of_word(self, words) -> bool:
+        for word in words:
+            had_first_lowercase = False
+            for i in range(len(word)):
+                if had_first_lowercase and word[i].isupper():
+                    return True
+                elif word[i].islower():
+                    had_first_lowercase = True
+        return False
 
     def _validate_only_available_points_have_dnp_indexes(self):
         self._logger.log_info("Validating that only Available points have DNP Indexes")
@@ -121,7 +135,7 @@ class Validator(object):
             duplicate_row = None
 
             if not dnp_index.isdigit():
-                continue    # DNP Indexes must be ints
+                continue  # DNP Indexes must be ints
 
             if isinstance(point, AnalogInputPoint):
                 duplicate_row = analog_input_index_dictionary.get(dnp_index)
@@ -146,18 +160,6 @@ class Validator(object):
             if duplicate_row:
                 self._logger.log_error("Row {} used the same DNP index as row {}".format(row, duplicate_row))
 
-        self._logger.log_endline()
-
-    def _verify_substation_name_in_points(self):
-        self._logger.log_info("Verifying Substation is included in Point Name")
-        for point in self._points_list.get_all_points():
-            point_name = point.get_point_name()
-            row = point.get_row()
-            substation = point.get_substation()
-            substation_with_underscores = "_" + substation + "_"
-            if substation_with_underscores not in point_name:
-                error_msg = "Row {} Point Name missing substation in hierarchy, {}".format(row, point_name, substation)
-                self._logger.log_error(error_msg)
         self._logger.log_endline()
 
     def _verify_device_ids_follow_standard(self):
@@ -352,43 +354,9 @@ class Validator(object):
             allowed_availabilities = set(item.value for item in Availability)
             if availability not in allowed_availabilities:
                 error_msg = "Row {} - {} - Invalid Availability. Valid options are Requested-Not Available, " \
-                            "Requested-Available, Requested-Not Applicable, Not Requested-Available"\
-                            .format(row, availability)
+                            "Requested-Available, Requested-Not Applicable, Not Requested-Available" \
+                    .format(row, availability)
 
-                self._logger.log_error(error_msg)
-
-        self._logger.log_endline()
-
-    def _validate_underscore_usage(self):
-        self._logger.log_info("Validating Underscore Usage")
-        for point in self._points_list.get_all_points():
-            point_name = point.get_point_name()
-            row = point.get_row()
-            device_type = point.get_device_type()
-            number_of_underscores = point_name.count("_")
-            if device_type == DeviceType.INVERTER_MODULE.value:  # Inverter Module is only device allowed 4
-                if number_of_underscores != 3 and number_of_underscores != 4:
-                    error_msg1 = "Row {} - {} - has {} underscores when there should be 3 or 4 for Inv Modules per A11"\
-                        .format(row, point_name, number_of_underscores)
-                    self._logger.log_error(error_msg1)
-            elif number_of_underscores != 3:
-                error_msg2 = "Row {} - {} - has {} underscores when there should be exactly 3 per A11"\
-                    .format(row, point_name, number_of_underscores)
-                self._logger.log_error(error_msg2)
-
-        self._logger.log_endline()
-
-    def _validate_point_length(self):
-        self._logger.log_info("Verifying All Not Requested-Available points are less than 60 chars")
-        for point in self._points_list.get_all_points():
-            point_name = point.get_point_name()
-            name_length = len(point_name)
-            row = point.get_row()
-            availability = point.get_availability()
-            if availability != Availability.NOT_REQUESTED_AVAILABLE.value:
-                continue
-            if name_length > 60:
-                error_msg = "Row {} - Point Exceeds 60 char limit by {} chars".format(row, name_length - 60)
                 self._logger.log_error(error_msg)
 
         self._logger.log_endline()
@@ -420,10 +388,10 @@ class Validator(object):
             device_type = point.get_device_type()
 
             if device_type not in all_device_types:
-                continue    # Skip since we have nothing to compare against
+                continue  # Skip since we have nothing to compare against
 
             if is_available == Availability.NOT_REQUESTED_AVAILABLE.value:
-                continue    # Attributes we didn't explicitly request will have made up names
+                continue  # Attributes we didn't explicitly request will have made up names
 
             if device_type_to_attributes_dict.get(device_type):
                 valid_attributes = device_type_to_attributes_dict.get(device_type)
@@ -437,9 +405,9 @@ class Validator(object):
         self._logger.log_endline()
 
     def __point_is_valid(self, name: str, valid_attributes: [str]) -> bool:
+        if name in valid_attributes:
+            return True
         for valid_name in valid_attributes:
-            if valid_name in name:
-                return True
             if '#' in valid_name:
                 string_split = valid_name.split("#")
                 part1 = string_split[0]
@@ -448,35 +416,23 @@ class Validator(object):
                     return True
         return False
 
-    def _validate_pi_ip_address_is_set(self):
-        pi_ip_address = self._points_list.get_pi_ip_address()
-        if pi_ip_address is None:
-            error_msg = "IP Address for Pi Connection must be set in cell B2"
+    def _validate_ip_address_is_set(self):
+        ip_address = self._points_list.get_pi_ip_address()
+        if ip_address is None:
+            error_msg = "IP Address for Connection must be set in cell B2"
             self._logger.log_error(error_msg)
         else:
-            pi_match = re.search("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", pi_ip_address)
-            if not pi_match:
+            match = re.search("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", ip_address)
+            if not match:
                 error_msg = "Invalid IP Address set in cell B2"
-                self._logger.log_error(error_msg)
-
-    def _validate_gms_ip_address_is_set(self):
-        gms_ip_address = self._points_list.get_gms_ip_address()
-        if gms_ip_address is None:
-            error_msg = "IP Address for GMS Connection must be set in cell E2"
-            self._logger.log_error(error_msg)
-        else:
-            gms_match = re.search("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", gms_ip_address)
-            if not gms_match:
-                error_msg = "Invalid IP Address set in cell E2"
                 self._logger.log_error(error_msg)
 
     def validate_points_list(self):
         self._verify_reactive_power_points_are_marked_available()
-        self._verify_suggested_names_for_not_requested_points_follow_pascal_case()
+        self._verify_suggested_names_for_not_requested_points_follow_title_case()
         self._validate_only_available_points_have_dnp_indexes()
         self._find_obvious_state_table_errors()
         self._validate_dnp_indexes_not_reused()
-        self._verify_substation_name_in_points()
         self._verify_device_ids_follow_standard()
         self._check_for_duplicates()
         self._verify_devices_have_all_points()
@@ -485,11 +441,7 @@ class Validator(object):
         self._validate_all_placeholders_are_removed()
         self._verify_engineering_units_defined_for_analogs()
         self._verify_availability_entry_is_valid()
-        self._validate_underscore_usage()
-        self._validate_point_length()
         self._validate_device_types()
         self._validate_point_names()
-        self._validate_pi_ip_address_is_set()
-        self._validate_gms_ip_address_is_set()
+        self._validate_ip_address_is_set()
         self._logger.print_error_count()
-
