@@ -77,8 +77,21 @@ class Validator(object):
             row = point.get_row()
             dnp_index = point.get_dnp_index()
             availability = point.get_availability()
-            if dnp_index.isdigit() and availability == Availability.REQUESTED_NOT_AVAILABLE.value:
+            unavailable_states = [Availability.REQUESTED_NOT_AVAILABLE.value, Availability.REQUESTED_NOT_APPLICABLE.value]
+            if dnp_index.isdigit() and availability in unavailable_states:
                 error_msg = "Row {} should not get a dnp index since it is not available/applicable".format(row)
+                self._logger.log_error(error_msg)
+        self._logger.log_endline()
+
+    def _verify_available_points_have_dnp_indexes(self):
+        self._logger.log_info("Validating that all Available points have DNP Indexes")
+        for point in self._points_list.get_all_points():
+            row = point.get_row()
+            dnp_index = point.get_dnp_index()
+            availability = point.get_availability()
+            available_states = [Availability.REQUESTED_AVAILABLE.value, Availability.NOT_REQUESTED_AVAILABLE.value]
+            if not dnp_index.isdigit() and availability in available_states:
+                error_msg = "Row {} is missing a DNP Index".format(row)
                 self._logger.log_error(error_msg)
         self._logger.log_endline()
 
@@ -426,8 +439,9 @@ class Validator(object):
 
     def validate_points_list(self):
         self._verify_reactive_power_points_are_marked_available()
-        self._verify_suggested_names_for_not_requested_points_follow_title_case()
+        #self._verify_suggested_names_for_not_requested_points_follow_title_case()
         self._validate_only_available_points_have_dnp_indexes()
+        self._verify_available_points_have_dnp_indexes()
         self._find_obvious_state_table_errors()
         self._validate_dnp_indexes_not_reused()
         self._verify_device_ids_follow_standard()
