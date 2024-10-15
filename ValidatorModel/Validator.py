@@ -169,6 +169,15 @@ class Validator(object):
 
         self._logger.log_endline()
 
+    def _verify_binary_output_control_state_table(self):
+        self._logger.log_info("Validating Binary Output State Tables")
+        for point in self._points_list.get_binary_output_points():
+            state_table = point.get_state_table()
+            row = point.get_row()
+            if 'latch' not in state_table.lower():
+                self._logger.log_error("Row {} state table is invalid, GMS sends Latch Off/Latch On".format(row))
+        self._logger.log_endline()
+
     def _verify_device_ids_follow_standard(self):
         self._logger.log_info("Verifying Device IDs - Must be All Caps and follow Attachment 3 Schemas")
         for point in self._points_list.get_all_points():
@@ -427,6 +436,7 @@ class Validator(object):
         return False
 
     def _validate_ip_address_is_set(self):
+        self._logger.log_info("Validating IP Address is included in Points List")
         ip_address = self._points_list.get_pi_ip_address()
         if ip_address is None:
             error_msg = "IP Address for Connection must be set in cell B2"
@@ -436,6 +446,7 @@ class Validator(object):
             if not match:
                 error_msg = "Invalid IP Address set in cell B2"
                 self._logger.log_error(error_msg)
+        self._logger.log_endline()
 
     def validate_points_list(self):
         self._verify_reactive_power_points_are_marked_available()
@@ -455,4 +466,5 @@ class Validator(object):
         self._validate_device_types()
         self._validate_point_names()
         self._validate_ip_address_is_set()
+        self._verify_binary_output_control_state_table()
         self._logger.print_error_count()
