@@ -103,7 +103,7 @@ class Device(object):
         elif device_type == DeviceType.MEDIUM_HIGH_VOLTAGE_XFMR.value:
             return "^XFMR(?:\d{3}|\d{3}-.*)$"
         elif device_type == DeviceType.INVERTER.value:
-            return "^INV\d{3}$"
+            return "^INV\d{3}[A-Z]?$"
         elif device_type == DeviceType.TRACKER_CONTROLLER.value:
             return "^TC\d{3}\-\d{2}_M\d{3}$"
         elif device_type == DeviceType.SOILING_STATION.value:
@@ -115,7 +115,7 @@ class Device(object):
         elif device_type == DeviceType.ANNUNCIATOR.value:
             return "^[A-Z\-\d]*$"
         elif device_type == DeviceType.INVERTER_MODULE.value:
-            return "^INV\d{3}([A-Z]|-\d{2,3})$"
+            return "^INV\d{3}[A-Z]?-\d{2,3}[A-Z]?$"
         elif device_type == DeviceType.POI.value:
             return "POI"
         elif device_type == DeviceType.BREAKER_AND_MOD_CONTROLS.value:
