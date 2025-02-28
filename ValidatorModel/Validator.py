@@ -448,23 +448,77 @@ class Validator(object):
                 self._logger.log_error(error_msg)
         self._logger.log_endline()
 
+    def _validate_ports_are_in_correct_range(self):
+        self._logger.log_info("Validating Ports")
+
+        bf_ports = set(range(20001, 20010))  # 20001-20009
+        gms_ports = set(range(20011, 20031))  # 20010-20030
+
+        port_in_spreadsheet = self._points_list.get_ports_in_spreadsheet()
+
+        if self.list_type == 'gms':
+            for port in gms_ports:
+                if str(port) in port_in_spreadsheet:
+                    break
+            else:
+                error_msg1 = "GMS ports must be in the range of 20010-20030"
+                self._logger.log_error(error_msg1)
+
+            for port in bf_ports:
+                if str(port) in port_in_spreadsheet:
+                    error_msg3 = "BF port was used for GMS, GMS ports must be in the range of 20010-20030"
+                    self._logger.log_error(error_msg3)
+        else:
+            for port in bf_ports:
+                if str(port) in port_in_spreadsheet:
+                    break
+            else:
+                error_msg2 = "Historian ports must be in the range of 20001-20009"
+                self._logger.log_error(error_msg2)
+
+            for port in gms_ports:
+                if str(port) in port_in_spreadsheet:
+                    error_msg4 = 'GMS port was used for Historian, Historian ports must be in the range of 20001-20009'
+                    self._logger.log_error(error_msg4)
+
+        self._logger.log_endline()
+
+    def _validate_master_address(self):
+        self._logger.log_info("Validating Master Address")
+        master_addr = self._points_list.get_master_addr()
+        if master_addr != '10':
+            error_msg = "Master Address in cell B4 must be 10"
+            self._logger.log_error(error_msg)
+        self._logger.log_endline()
+
+    def _validate_slave_address(self):
+        self._logger.log_info("Validating Slave Address")
+        master_addr = self._points_list.get_master_addr()
+        if master_addr != '10':
+            error_msg = "Master Address in cell B5 must be 1"
+            self._logger.log_error(error_msg)
+        self._logger.log_endline()
+
     def validate_points_list(self):
-        self._verify_reactive_power_points_are_marked_available()
-        #self._verify_suggested_names_for_not_requested_points_follow_title_case()
-        self._validate_only_available_points_have_dnp_indexes()
-        self._verify_available_points_have_dnp_indexes()
-        self._find_obvious_state_table_errors()
-        self._validate_dnp_indexes_not_reused()
-        self._verify_device_ids_follow_standard()
-        self._check_for_duplicates()
-        self._verify_devices_have_all_points()
-        self._verify_units_are_correct()
-        self._validate_point_descriptions()
-        self._validate_all_placeholders_are_removed()
-        self._verify_engineering_units_defined_for_analogs()
-        self._verify_availability_entry_is_valid()
-        self._validate_device_types()
-        self._validate_point_names()
         self._validate_ip_address_is_set()
-        self._verify_binary_output_control_state_table()
+        self._validate_ports_are_in_correct_range()
+        self._validate_master_address()
+        self._validate_slave_address()
+        # self._verify_reactive_power_points_are_marked_available()
+        # #self._verify_suggested_names_for_not_requested_points_follow_title_case()
+        # self._validate_only_available_points_have_dnp_indexes()
+        # self._verify_available_points_have_dnp_indexes()
+        # self._find_obvious_state_table_errors()
+        # self._validate_dnp_indexes_not_reused()
+        # self._verify_device_ids_follow_standard()
+        # self._check_for_duplicates()
+        # self._verify_devices_have_all_points()
+        # self._verify_units_are_correct()
+        # self._validate_point_descriptions()
+        # self._validate_all_placeholders_are_removed()
+        # self._verify_engineering_units_defined_for_analogs()
+        # self._verify_availability_entry_is_valid()
+        # self._validate_device_types()
+        # self._validate_point_names()
+        # self._verify_binary_output_control_state_table()
         self._logger.print_error_count()

@@ -21,6 +21,7 @@ def main():
     parser.add_argument('SHEET', action="store", help=sheet_help)
     parser.add_argument('-gms', action="store_true", dest="gms", help="Use this flag for GMS Points List")
     parser.add_argument('-historian', action="store_true", dest="historian", help="Use this flag for BF Points List")
+    parser.add_argument('-opfile', action="store", dest="opfile", help="log file location")
 
     try:
         cmd_line_args = parser.parse_args()
@@ -43,7 +44,11 @@ def main():
     points_list = PointsList(cmd_line_args.FILENAME, cmd_line_args.SHEET)
     # points_list = PointsList("TestSpreadsheets\d3.xlsx", "1")
     list_type = "gms" if cmd_line_args.gms else "historian"
-    log_file = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop\{}_point_list_validator_log.txt'.format(list_type))
+
+    if cmd_line_args.opfile:
+        log_file = cmd_line_args.opfile
+    else:
+        log_file = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop\{}_point_list_validator_log.txt'.format(list_type))
 
     validator = Validator(points_list, "Attachment 3-Attribute Names & Engineering Units.xlsx", log_file, list_type)
     validator.validate_points_list()

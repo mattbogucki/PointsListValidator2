@@ -122,6 +122,8 @@ class Device(object):
             return "Breaker and MOD Controls"
         elif device_type == DeviceType.WARTSILA_ESS_UNIT.value:
             return "^ESS\d{3}$"
+        elif device_type == DeviceType.BESS.value:
+            return "^.*$"
         else:
             return ""
 

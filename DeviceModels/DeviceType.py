@@ -24,4 +24,5 @@ class DeviceType(Enum):
     POI = 'POI'
     BREAKER_AND_MOD_CONTROLS = 'Breaker and MOD Controls'
     WARTSILA_ESS_UNIT = 'Wartsila ESS Unit'
+    BESS = 'BESS'
 
