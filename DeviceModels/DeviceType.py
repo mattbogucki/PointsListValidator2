@@ -25,4 +25,6 @@ class DeviceType(Enum):
     BREAKER_AND_MOD_CONTROLS = 'Breaker and MOD Controls'
     WARTSILA_ESS_UNIT = 'Wartsila ESS Unit'
     BESS = 'BESS'
+    MEGAPACK = 'Megapack'
+    UPS = 'UPS'
 

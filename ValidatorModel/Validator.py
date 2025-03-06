@@ -266,6 +266,9 @@ class Validator(object):
         points_with_units = analog_input_points + analog_output_points + accumulator_points
         all_device_types = set(item.value for item in DeviceType)
 
+        # Device Type -> Dict[Attribute: Unit]
+        device_type_dict = {}
+
         for point in points_with_units:
             device_type = point.get_device_type()
             units = point.get_units()
@@ -279,10 +282,8 @@ class Validator(object):
             if device_type not in all_device_types:
                 continue
 
-            # Device Type -> Dict[Attribute: Unit]
-            device_type_dict = {}
-            attribute_dictionary = device_type_dict.get(device_type)
-            if attribute_dictionary:
+            attribute_dictionary = device_type_dict.get(device_type, None)
+            if attribute_dictionary is not None:
                 attribute_to_units_dictionary = attribute_dictionary
             else:
                 new_device_type = self._device_manager.create_device(device_type)
@@ -299,6 +300,9 @@ class Validator(object):
         dm = DeviceManager(self._standards_file)
         all_device_types = set(item.value for item in DeviceType)
 
+        # Device Type -> Dict[Attribute: Description]
+        device_type_dict = {}
+
         for point in self._points_list.get_all_points():
             device_type = point.get_device_type()
             description = point.get_description()
@@ -312,10 +316,8 @@ class Validator(object):
             if device_type not in all_device_types:
                 continue
 
-            # Device Type -> Dict[Attribute: Description]
-            device_type_dict = {}
-            attribute_dictionary = device_type_dict.get(device_type)
-            if attribute_dictionary:
+            attribute_dictionary = device_type_dict.get(device_type, None)
+            if attribute_dictionary is not None:
                 attribute_to_descriptions_dictionary = attribute_dictionary
             else:
                 new_device_type = dm.create_device(device_type)
