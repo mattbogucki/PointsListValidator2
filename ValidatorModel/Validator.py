@@ -419,6 +419,7 @@ class Validator(object):
             else:
                 new_device_type = self._device_manager.create_device(device_type)
                 valid_attributes = new_device_type.get_list_of_required_attributes()
+                device_type_to_attributes_dict[device_type] = valid_attributes
 
             if not self.__point_is_valid(point_name, valid_attributes):
                 self._logger.log_error("Row {} - {} - Invalid Point Name".format(row, point_name))
@@ -495,9 +496,9 @@ class Validator(object):
 
     def _validate_slave_address(self):
         self._logger.log_info("Validating Slave Address")
-        master_addr = self._points_list.get_master_addr()
-        if master_addr != '10':
-            error_msg = "Master Address in cell B5 must be 1"
+        slave_addr = self._points_list.get_slave_addr()
+        if slave_addr != '1':
+            error_msg = "Slave Address in cell B5 must be 1"
             self._logger.log_error(error_msg)
         self._logger.log_endline()
 
