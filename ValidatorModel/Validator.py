@@ -502,6 +502,24 @@ class Validator(object):
             self._logger.log_error(error_msg)
         self._logger.log_endline()
 
+    def _verify_control_points_have_feedbacks(self):
+        self._logger.log_info("Verifying Control Points Have Feedback Points Defined In Column J")
+        analog_outs = self._points_list.get_analog_output_points()
+        binary_outs = self._points_list.get_binary_output_points()
+
+        control_points = analog_outs + binary_outs
+
+        available_states = [Availability.REQUESTED_AVAILABLE.value, Availability.NOT_REQUESTED_AVAILABLE.value]
+
+        for control_point in control_points:
+            availability = control_point.get_availability()
+            feedback_point_index = control_point.get_feedback_dnp_index()
+            if not feedback_point_index.isdigit() and availability in available_states and str(feedback_point_index).lower() != 'n/a':
+                row = control_point.get_row()
+                error_msg = "Row {} Control Point is missing its corresponding DNP Index feedback point in column J (i.e. Binary Input 52a contact is feedback for breaker control).  Put N/A if there is no feedback point".format(row)
+                self._logger.log_error(error_msg)
+        self._logger.log_endline()
+
     def validate_points_list(self):
         self._validate_ip_address_is_set()
         self._validate_ports_are_in_correct_range()
@@ -524,4 +542,6 @@ class Validator(object):
         self._validate_device_types()
         self._validate_point_names()
         self._verify_binary_output_control_state_table()
+        self._verify_control_points_have_feedbacks()
+
         self._logger.print_error_count()

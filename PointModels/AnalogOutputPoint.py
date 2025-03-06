@@ -12,7 +12,7 @@ class AnalogOutputPoint(Point):
     def get_units(self):
         return self._units
 
-    def get_feedback_point(self):
+    def get_feedback_dnp_index(self):
         return self._feedback_point
 
 
