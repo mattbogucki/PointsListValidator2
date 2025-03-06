@@ -53,7 +53,7 @@ class Device(object):
         self._attribute_descriptions_dictionary = new_dict
         return copy.deepcopy(new_dict)
 
-    def get_lists_attribute_should_be_included_in_dictionary(self) -> [str, str]:
+    def get_lists_attribute_should_be_included_in_dictionary(self) -> Dict[str, str]:
         if self._attribute_lists_dictionary:
             return copy.deepcopy(self._attribute_lists_dictionary)
 

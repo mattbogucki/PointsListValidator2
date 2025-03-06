@@ -414,7 +414,7 @@ class Validator(object):
             if is_available == Availability.NOT_REQUESTED_AVAILABLE.value:
                 continue  # Attributes we didn't explicitly request will have made up names
 
-            if device_type_to_attributes_dict.get(device_type):
+            if device_type_to_attributes_dict.get(device_type, None) is not None:
                 valid_attributes = device_type_to_attributes_dict.get(device_type)
             else:
                 new_device_type = self._device_manager.create_device(device_type)
